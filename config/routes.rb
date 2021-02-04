@@ -1,3 +1,4 @@
 Rails.application.routes.draw do
-  # For details on the DSL available within this file, see http://guides.rubyonrails.org/routing.html
+  post '/visited_links', to: 'fb_api#visited_links'
+  get '/visited_domains', to: 'fb_api#visited_domains'
 end
