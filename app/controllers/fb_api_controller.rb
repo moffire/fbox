@@ -2,49 +2,62 @@ require 'redis'
 
 class FbApiController < ApplicationController
 
-  $redis = Redis.new
-
   def visited_links
 
-    timestamp = Time.now.to_i
-
-    links = params[:links]
-
-    if links.nil?
-      return render json: { 'status': 'Unknown request params' }, status: 400
+    if stored_to_db?(params[:links])
+      render json: { 'status': 'OK' }, status: 200
+    else
+      render json: { 'status': 'Empty request params' }, status: 400
     end
-
-    # add a random float number after each link to prevent rewriting
-    # and store them into redis with timestamp as score value
-    links.each{ |link| $redis.zadd('links', timestamp, link + " [#{ rand.to_s }]") unless link.empty? }
-
-    render json: { 'status': 'OK' }, status: 200
-
   end
 
+
   def visited_domains
+
     date_from, date_to = params['from'], params['to']
 
     if date_from.nil? || date_to.nil?
-      return render json: { 'status': 'Unknown request params' }, status: 400
+      return render json: { 'status': "Params 'from' or 'to' are not given" }, status: 400
     end
 
     if date_from.empty? || date_to.empty?
-      return render json: { 'status': 'One or more params has a zero length value' }, status: 400
+      return render json: { 'status': 'One or more params have a zero length value' }, status: 400
     end
 
-    if date_from > date_to
-      return render json: { 'status': "Param 'from' should be less than 'to'" }, status: 400
+    if date_from.to_i > date_to.to_i
+      return render json: { 'status': "Param value 'from' should be less than 'to'" }, status: 400
     end
 
     begin
-      visited_links = $redis.zrangebyscore('links', date_from, date_to)
+      visited_links = REDIS.zrangebyscore('links', date_from, date_to)
     rescue Redis::CommandError
-      return render json: { 'status': 'Invalid params values' }, status: 400
+      return render json: { 'status': 'Invalid params value' }, status: 400
     end
 
+    unique_domains = get_unique_domains(visited_links)
+
+    render json: {'domains': unique_domains, 'status': 'OK'}, status: 200
+
+  end
+
+  def stored_to_db?(links)
+    if links.nil?
+      false
+    elsif links.empty?
+      false
+    else
+      timestamp = Time.now.to_i
+      # add a random float number after each link to prevent rewriting
+      # and store them into redis with timestamp as a score value
+      links.each { |link| REDIS.zadd('links', timestamp, link + " [#{ rand.to_s }]") }
+      true
+    end
+  end
+
+
+  def get_unique_domains(links)
     domains = Set.new
-    visited_links.each do |link|
+    links.each do |link|
       unless link.start_with?('http')
         link = 'http://' + link
       end
@@ -56,8 +69,6 @@ class FbApiController < ApplicationController
         # Ignored
       end
     end
-
-    render json: {'domains': domains, 'status': 'OK'}, status: 200
-
+    domains
   end
 end
