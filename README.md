@@ -1,24 +1,28 @@
-# README
+## Тестовое задание
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+### Задание
+1) Ресурс ***POST /visited_links*** служит
+   для передачи в сервис массива ссылок в POST-запросе. 
+2) Временем их посещения считается время получения запроса сервисом.
+3) Ресурс ***GET /visited_domains?from=[int]&to=[int]*** служит для получения GET-запросом<br>
+   списка уникальных доменов,
+посещенных за переданный интервал времени.
+4) Поле ***status*** ответа служит для передачи любых возникающих при обработке запроса
+ошибок.
 
-Things you may want to cover:
 
-* Ruby version
+### Установка
+* git clone `git@github.com:moffire/fbox.git`
+* bundle install
+* rails s
 
-* System dependencies
+### Тесты
+* bundle exec rspec
 
-* Configuration
+### Технологии
+* Ruby 2.7.2
+* Rails 5.2.4
 
-* Database creation
+### Базовый URL
+* localhost:3000
 
-* Database initialization
-
-* How to run the test suite
-
-* Services (job queues, cache servers, search engines, etc.)
-
-* Deployment instructions
-
-* ...
