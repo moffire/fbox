@@ -36,6 +36,8 @@ group :development, :test do
   gem 'redis'
   gem 'redis-namespace'
   gem 'redis-rails'
+  gem 'rspec-rails'
+  gem 'mock_redis'
 end
 
 group :development do
